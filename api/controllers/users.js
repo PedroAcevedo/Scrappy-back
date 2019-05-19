@@ -18,9 +18,10 @@ exports.validate = (req, res, next) => {
     const token = req.headers["token"];
     jwt.verify(token, 'shhhhh', function(err, decoded) {
         if(err){
-            res.send({"mensaje": err})
+            res.send({"mensaje": err});
+        }else{
+            next();   
         }
-        next();
     });
 }
 
@@ -39,6 +40,10 @@ exports.post = (req, res, next) => {
 };
 
 exports.get = (req, res, next) => {
+    const email = req.params.email;
+    User.findOne({ 'email': email }, function (err, user) {
+        res.json(user);
+    });
 };
 
 
@@ -47,21 +52,39 @@ exports.logout = (req, res, next) => {
     
 };
 
+exports.email = (req, res, next) => {
+    const email = req.params.email;
+    User.findOne({ 'email': email }, 'email', function (err, user) {
+        res.json(user);
+    });
+};
+
+
 exports.login = (req, res, next) => { 
     const user2 = req.body;
     const email = user2["email"];
     const password = user2["password"];
-    
     User.findOne({ 'email': email }, 'password', function (err, user) {
         bcrypt.compare(password, user.password, function(err, resu) {
-            res.json({"token" : jwt.sign({ 'email': email },'shhhhh')});
+            if(resu==true){
+                res.json({"login" : true, "token" : jwt.sign({ 'email': email },'shhhhh')});
+            }else{
+                res.json({"login" : false})
+            }
         });
     });
     
 };
 
 exports.put = (req, res, next) => {
-    
+    const updates = req.body;
+    const email = updates["email"];
+    User.updateOne({ 'email': email }, { 'name': updates["name"], 'profileImage':updates["profileImage"], 'address': updates["address"] }, function (err, user) {
+        if(err){
+            console.log(err);
+        }
+    });
+    res.json({"update": "OK"});
 };
 
 exports.delete = (req, res, next) => { 
