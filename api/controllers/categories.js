@@ -77,7 +77,7 @@ exports.removeprod = (req, res, next) => {
         }
         res.json({"status": "OK"});
     });  
-    })
+    });
 };
 
 

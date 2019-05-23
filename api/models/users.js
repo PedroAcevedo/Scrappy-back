@@ -22,6 +22,7 @@ const UserModel = new Schema({
     profileImage: {
         type: String
     },
+    lists: [Schema.Types.Mixed], 
     admin: {
         type: Boolean,
         required: true

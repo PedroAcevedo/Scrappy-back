@@ -18,7 +18,7 @@ exports.validate = (req, res, next) => {
     const token = req.headers["token"];
     jwt.verify(token, 'shhhhh', function(err, decoded) {
         if(err){
-            res.send({"mensaje": err});
+            res.json({"mensaje": err});
         }else{
             next();   
         }
@@ -102,3 +102,116 @@ exports.delete = (req, res, next) => {
         res.json({"You":"Are a devil"});
     });
 };
+
+
+exports.list = (req, res, next) => {
+    const id =  req.params.email;
+    User.findOne({ '_id': id }, 'lists' , function (err, user) {
+        const lists = user.lists;
+        if(user!=null){
+            if(user.lists != null){
+                res.json(lists[lists[lists.length - 1]]);   
+            }else{
+                res.json({});    
+            }
+        }else{
+            res.json({'status':'NONE'});
+        }
+    })
+};
+
+exports.addlist = (req, res, next) => { 
+    const list_new = req.body;    
+    const id = req.params.id;
+    User.findOne({ '_id': id }, "lists" , function (err, user) {
+        const lists = user.lists;
+        var months = new Array(
+                "Enero",
+                "Febrero",
+                "Marzo",
+                "Abril",
+                "Mayo",
+                "Junio",
+                "Julio",
+                "Agosto",
+                "Septiembre",
+                "Octubre",
+                "Noviembre",
+                "Diciembre"
+            );
+            var fecha_actual = new Date();
+        if(lists.length > 0){
+            lists[lists.length - 1]["products"].push(list_new);
+            lists[lists.length - 1]["date"] = fecha_actual.getDate() +
+                  " de " +
+                  months[fecha_actual.getMonth()] +
+                  " del " +
+                  fecha_actual.getFullYear();
+        }else{
+            lists.push({
+                "products" : [],
+                "date":  fecha_actual.getDate() +
+                  " de " +
+                  months[fecha_actual.getMonth()] +
+                  " del " +
+                  fecha_actual.getFullYear()
+            })
+            lists[0]["products"].push(list_new);
+        }
+        User.updateOne({ "_id": id }, { "lists": lists }, function (err) {
+            if(err){
+                console.log(err);
+            }
+            res.json({"status": "OK"});
+        });
+    });
+    
+};
+
+exports.removelist = (req, res, next) => { 
+    const list_remove = req.headers["product"];;    
+    const id = req.params.id;
+    User.findOne({ '_id': id }, "lists" , function (err, user) {
+        const lists = user.lists;
+        if(lists != null){
+        for(var i = lists[lists.length - 1]["products"].length - 1; i > 0; i--) {
+            if( lists[lists.length - 1]["products"][i]["name"] === list_remove) {
+               lists[lists.length - 1]["products"].splice(i, 1);
+            }
+        }
+        User.updateOne({ "_id": id }, { "lists": lists }, function (err) {
+            if(err){
+                console.log(err);
+            }
+            res.json({"status": "OK"});
+        });
+        }else{
+              res.json({"status": "NOOK"});
+        }
+    });
+};
+
+
+
+exports.getlist  = (req, res, next) => { 
+    const id = req.params.id;
+    User.findOne({ '_id': id }, "lists" , function (err, user) {
+        if(user.lists){
+            res.json(user.lists[user.lists.length - 1]);   
+        }else{
+            res.json({})
+        }
+    })
+};
+
+exports.historical = (req, res, next) => { 
+    const id = req.params.id;
+    User.findOne({ '_id': id }, "lists" , function (err, user) {
+        res.json(user.lists);
+    })
+};
+
+
+
+
+
